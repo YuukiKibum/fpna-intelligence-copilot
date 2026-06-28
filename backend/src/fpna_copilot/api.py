@@ -1,16 +1,18 @@
 from __future__ import annotations
 
+from ag_ui_langgraph import add_langgraph_fastapi_endpoint
+from copilotkit import LangGraphAGUIAgent
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from fpna_copilot.copilotkit_agent import fpna_agent
 from fpna_copilot.finance_engine.copilot_service import ask_fpna
-from fpna_copilot.models import FinanceQuery, FPNAAnswer
-from fpna_copilot.ui_spec.ui_spec_builder import build_fpna_answer_from_service_result
+from fpna_copilot.models import FinanceQuery
 
 
 app = FastAPI(
     title="FP&A Intelligence Copilot API",
-    description="Backend API for deterministic and AI-powered FP&A finance analysis.",
+    description="Backend API for deterministic, AI-powered, and CopilotKit FP&A finance analysis.",
     version="0.1.0",
 )
 
@@ -31,10 +33,6 @@ app.add_middleware(
 
 @app.get("/")
 def root() -> dict[str, str]:
-    """
-    Health check endpoint.
-    """
-
     return {
         "status": "ok",
         "app": "FP&A Intelligence Copilot API",
@@ -43,34 +41,32 @@ def root() -> dict[str, str]:
 
 @app.get("/api/health")
 def health() -> dict[str, str]:
-    """
-    API health endpoint.
-    """
-
     return {
         "status": "healthy",
     }
 
 
-@app.post("/api/chat", response_model=FPNAAnswer)
-def chat(query: FinanceQuery) -> FPNAAnswer:
+@app.post("/api/finance/query")
+def finance_query(query: FinanceQuery) -> dict:
     """
-    Main chat endpoint.
+    Data-only finance endpoint.
 
-    ai_mode = False:
-    - deterministic planner decides approved tools
-
-    ai_mode = True:
-    - LangGraph AI planner decides approved tools
-
-    In both modes:
-    - approved tools calculate using SQLite + pandas
-    - response includes generative UI spec
+    This is useful for testing the backend without the frontend.
+    It does not return ui_spec.
     """
 
-    service_result = ask_fpna(
+    return ask_fpna(
         question=query.question,
         ai_mode=query.ai_mode,
     )
 
-    return build_fpna_answer_from_service_result(service_result)
+
+add_langgraph_fastapi_endpoint(
+    app=app,
+    agent=LangGraphAGUIAgent(
+        name="fpna_agent",
+        description="FP&A intelligence copilot for finance analysis and CopilotKit generative UI.",
+        graph=fpna_agent,
+    ),
+    path="/copilotkit",
+)

@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Executive Finance Assistant",
-  description: "Finance insight workspace for executive reporting",
-  applicationName: "Executive Finance Assistant",
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
-  },
+  title: "FP&A Intelligence Copilot",
+  description: "AI-powered FP&A analysis and generative UI",
 };
 
 export default function RootLayout({
@@ -19,7 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

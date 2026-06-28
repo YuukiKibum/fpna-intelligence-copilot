@@ -61,7 +61,7 @@ class AgentAnswer(BaseModel):
 
 
 # ============================================================
-# New revamp models for SQLite + LangGraph + Generative UI
+# Revamp models for SQLite + LangGraph + CopilotKit
 # ============================================================
 
 class FinanceFactRow(BaseModel):
@@ -99,7 +99,7 @@ class FinanceFactRow(BaseModel):
 
 class FinanceQuery(BaseModel):
     """
-    User question coming from the frontend.
+    User question coming from the frontend or test API.
     """
 
     question: str
@@ -110,8 +110,8 @@ class FinanceToolCall(BaseModel):
     """
     A tool the system wants to run.
 
-    In AI mode, LangGraph/LLM will decide this.
-    In deterministic mode, our rule-based planner will decide this.
+    In AI mode, LangGraph/LLM decides this.
+    In deterministic mode, the rule-based planner decides this.
     """
 
     tool_name: str
@@ -120,57 +120,10 @@ class FinanceToolCall(BaseModel):
 
 class FinanceToolResult(BaseModel):
     """
-    Result returned by a trusted pandas finance tool.
+    Result returned by a trusted pandas/SQLite finance tool.
     """
 
     tool_name: str
     success: bool = True
     data: dict[str, Any] = Field(default_factory=dict)
     error: str | None = None
-
-
-class UIComponent(BaseModel):
-    """
-    One generative UI component.
-
-    Example:
-    - metric_card
-    - variance_card
-    - bar_chart
-    - table
-    - cfo_insight
-    """
-
-    type: str
-    title: str | None = None
-    props: dict[str, Any] = Field(default_factory=dict)
-
-
-class UISpec(BaseModel):
-    """
-    Structured UI response.
-
-    The frontend will read this and decide what to render.
-    """
-
-    layout: Literal["chat", "executive_summary", "dashboard"] = "chat"
-    components: list[UIComponent] = Field(default_factory=list)
-
-
-class FPNAAnswer(BaseModel):
-    """
-    Final answer returned to the UI.
-    """
-
-    answer_text: str
-    tool_results: list[FinanceToolResult] = Field(default_factory=list)
-    ui_spec: UISpec = Field(default_factory=UISpec)
-    follow_up_questions: list[str] = Field(default_factory=list)
-    assumptions: list[str] = Field(default_factory=list)
-    confidence: float | None = None
-
-    # Debug / trace fields for frontend developer panel
-    mode: Literal["deterministic", "ai"] | None = None
-    used_fallback: bool = False
-    tool_plan: list[dict[str, Any]] = Field(default_factory=list)
-    reflection: str | None = None
